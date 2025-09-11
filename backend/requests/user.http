@@ -1,0 +1,44 @@
+GET {{api_url}}/users
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+###
+POST {{api_url}}/users
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "name": "hello",
+    "email": "hello@gmail.com",
+    "password": "12345678",
+    "role": "user"
+}
+
+###
+GET {{api_url}}/users/3
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+###
+PUT {{api_url}}/users/4
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "name": "David",
+    "email": "david67@gmail.com",
+    "password": "12345678",
+    "role": "user"
+}
+
+###
+DELETE {{api_url}}/users/6
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+

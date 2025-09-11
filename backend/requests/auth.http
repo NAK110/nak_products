@@ -1,0 +1,38 @@
+POST {{api_url}}/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Nak",
+    "email": "nak110@gmail.com",
+    "password": "12345678"
+}
+
+###
+POST {{api_url}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    //for admin
+    # "email": "admin@gmail.com",
+    # "password": "password"
+
+    //for user
+    "email": "jackson@gmail.com",
+    "password": "12345678"
+}
+
+###
+POST {{api_url}}/logout
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 5|0rwdAzP8GZFYg2n8mLfGVq3YHZN05v0O1cwhwIkk31e856c7
+
+###
+GET {{api_url}}/user
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{user_token}}
+
+

@@ -1,0 +1,39 @@
+GET {{api_url}}/categories
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+###
+POST {{api_url}}/categories
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "category_name": "Deez Nuts"
+}
+
+//get product by category id
+###
+GET {{api_url}}/categories/5
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+###
+PUT {{api_url}}/categories/6
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "category_name": "Deez Nuts 2"
+}
+
+###
+DELETE {{api_url}}/categories/2
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+

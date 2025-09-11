@@ -1,0 +1,48 @@
+GET {{api_url}}/products
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+###
+POST {{api_url}}/products
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "product_name": "Honda 2025",
+    "description": "A new Honda 2025.",
+    "price": 9999.99,
+    "in_stock": 10,
+    "image_url": "",
+    "category_id": 3
+}
+
+###
+GET {{api_url}}/products/6
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+###
+PUT {{api_url}}/products/13
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+    "product_name": "Honda 2026",
+    "description": "A new Honda 2025.",
+    "price": 9999.99,
+    "in_stock": 10,
+    "image_url": "",
+    "category_id": 3
+}
+
+###
+DELETE {{api_url}}/products/2
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
+
