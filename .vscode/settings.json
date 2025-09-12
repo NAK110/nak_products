@@ -1,0 +1,11 @@
+{
+  "nuxt.isNuxtApp": false,
+  "rest-client.environmentVariables": {
+    "$shared": {},
+    "local": {
+      "api_url": "http://localhost:8000/api",
+      "user_token": "2|UTwuwOrpG4hbzdBzm5v9W4ewHBAQWxTe6TaWeaf3d7ce5ed8",
+      "admin_token": "1|EV7EFRIjdnM1kBmuaw89OjqS0DZe6AzjJZuUvnlx5baa3996"
+    }
+  }
+}

@@ -15,12 +15,12 @@ Accept: application/json
 
 {
     //for admin
-    # "email": "admin@gmail.com",
-    # "password": "password"
+    "email": "admin@gmail.com",
+    "password": "password"
 
     //for user
-    "email": "jackson@gmail.com",
-    "password": "12345678"
+    # "email": "jackson@gmail.com",
+    # "password": "12345678"
 }
 
 ###
