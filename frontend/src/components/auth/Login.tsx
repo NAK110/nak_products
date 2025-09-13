@@ -16,8 +16,12 @@ import { AxiosError } from "axios";
 interface LoginResponse {
   success: boolean;
   message: string;
-  access_token: string;
-  token_type: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 interface LoginError {
@@ -49,8 +53,14 @@ export default function LoginForm({
       });
 
       const loginData = response.data;
-      localStorage.setItem("auth_token", loginData.access_token);
-      localStorage.setItem("token_type", loginData.token_type);
+
+      // Store user info in localStorage for UI purposes
+      // Authentication is handled via HTTP-only session cookies
+      if (loginData.user) {
+        localStorage.setItem("user", JSON.stringify(loginData.user));
+      }
+
+      // Redirect to dashboard or home
       window.location.href = "/";
     } catch (err) {
       console.error("Login error:", err);
@@ -59,8 +69,15 @@ export default function LoginForm({
         if (err.response) {
           // Server responded with error status
           const errorData = err.response.data as LoginError;
-          setError(errorData.message || "Login failed");
 
+          // Handle validation errors
+          if (err.response.status === 422 && errorData.errors) {
+            const emailError = errorData.errors.email?.[0];
+            const passwordError = errorData.errors.password?.[0];
+            setError(emailError || passwordError || "Validation error");
+          } else {
+            setError(errorData.message || "Login failed");
+          }
         } else if (err.request) {
           // Request was made but no response received
           setError("Network error. Please check your connection.");
@@ -125,11 +142,11 @@ export default function LoginForm({
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
-              Don't have an account{" "}
-              <a href="/register" className="underline underline-offset-4">
-                Register
-              </a>
-            </div>
+                Don't have an account{" "}
+                <a href="/register" className="underline underline-offset-4">
+                  Register
+                </a>
+              </div>
             </div>
           </form>
         </CardContent>

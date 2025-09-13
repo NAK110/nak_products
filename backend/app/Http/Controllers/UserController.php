@@ -13,7 +13,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        return User::all();
+        $user = User::all(); 
+        return response()->json(['success' => true, 'data' => $user]);
     }
 
 
@@ -65,7 +66,7 @@ class UserController extends Controller
             $user->update(['password' => Hash::make($request->password)]);
         }
 
-        return response()->json(['success' => true, 'message' => 'User updated successfully']);
+        return response()->json(['success' => true, 'message' => 'User updated successfully', 'user' => $user]);
     }
 
     public function destroy(User $user)

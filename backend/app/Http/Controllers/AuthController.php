@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    //
     public function register(Request $request)
     {
         $request->validate([
@@ -24,44 +25,46 @@ class AuthController extends Controller
             'role' => 'user',
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Log the user in immediately after registration
+        Auth::login($user);
 
         return response()->json([
             'success' => true,
-            'message' => "Register successful",
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'message' => 'Registration successful',
+            'user' => $user,
         ]);
     }
 
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:8',
+            'email' => 'required|string|email',
+            'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Invalid credentials',
-            ], 401);
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Regenerate session ID to prevent session fixation attacks
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
-            'message' => "Login successful",
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'message' => 'Login successful',
+            'user' => Auth::user(),
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::logout();
+
+        // Invalidate the session and regenerate CSRF token
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,

@@ -12,7 +12,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return Category::with('products')->get();
+        $category = Category::with('products')->get();
+        return response()->json(['success' => true, 'data' => $category]);
     }
 
     /**
@@ -44,7 +45,7 @@ class CategoryController extends Controller
         ]);
 
         $category->update($request->all());
-        return response()->json(['success' => true, 'message' => 'Category created successfully']);
+        return response()->json(['success' => true, 'message' => 'Category created successfully', 'category' => $category]);
     }
 
     public function destroy(Category $category)

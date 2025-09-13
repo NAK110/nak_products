@@ -1,7 +1,6 @@
 GET {{api_url}}/products
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer {{admin_token}}
 
 ###
 POST {{api_url}}/products
