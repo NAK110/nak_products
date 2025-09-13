@@ -9,11 +9,72 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import api from "@/lib/api";
+import { AxiosError } from "axios";
+
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  access_token: string;
+  token_type: string;
+}
+
+interface LoginError {
+  message: string;
+  errors?: {
+    email?: string[];
+    password?: string[];
+  };
+}
 
 export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.post<LoginResponse>("/login", {
+        email,
+        password,
+      });
+
+      const loginData = response.data;
+      localStorage.setItem("auth_token", loginData.access_token);
+      localStorage.setItem("token_type", loginData.token_type);
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Login error:", err);
+
+      if (err instanceof AxiosError) {
+        if (err.response) {
+          // Server responded with error status
+          const errorData = err.response.data as LoginError;
+          setError(errorData.message || "Login failed");
+
+        } else if (err.request) {
+          // Request was made but no response received
+          setError("Network error. Please check your connection.");
+        } else {
+          // Something else happened
+          setError("An unexpected error occurred.");
+        }
+      } else {
+        setError("An unexpected error occurred.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -25,30 +86,50 @@ export default function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                  {error}
+                </div>
+              )}
+
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="m@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
+
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
+
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Login
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </div>
+              <div className="mt-4 text-center text-sm">
+              Don't have an account{" "}
+              <a href="/register" className="underline underline-offset-4">
+                Register
+              </a>
+            </div>
             </div>
           </form>
         </CardContent>
