@@ -13,8 +13,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = User::all(); 
-        return response()->json(['success' => true, 'data' => $user]);
+        $user = User::all();
+        return response()->json(['success' => true, 'users' => $user]);
     }
 
 
@@ -56,17 +56,26 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            // Fix: Add the user ID exclusion to allow keeping the same email
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|string|in:admin,user',
+            // Add password validation rule
+            'password' => 'nullable|string|min:8',
         ]);
 
+        // Update user basic info
         $user->update($request->only(['name', 'email', 'role']));
 
+        // Update password if provided
         if ($request->filled('password')) {
             $user->update(['password' => Hash::make($request->password)]);
         }
 
-        return response()->json(['success' => true, 'message' => 'User updated successfully', 'user' => $user]);
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'user' => $user
+        ]);
     }
 
     public function destroy(User $user)

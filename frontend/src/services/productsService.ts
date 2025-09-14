@@ -1,4 +1,6 @@
+// services/productsService.ts - Fixed with proper TypeScript types
 import api from "@/lib/api";
+import { AxiosError } from "axios";
 
 export interface Product {
   id: number;
@@ -6,8 +8,8 @@ export interface Product {
   description?: string;
   price: number;
   in_stock: number;
-  image_url?: string;
-  image_path?: string; // Add this since it's in the API response
+  image_url?: string | null;
+  image_path?: string;
   category_id: number;
   created_at?: string;
   updated_at?: string;
@@ -40,7 +42,6 @@ export interface UpdateProductRequest {
   category_id: number;
 }
 
-// Response interfaces matching your Laravel controller
 export interface ProductsResponse {
   success: boolean;
   data: Product[];
@@ -63,9 +64,20 @@ export interface DeleteProductResponse {
   message: string;
 }
 
-// Helper function to fix malformed image URLs [16]
-const fixImageUrl = (imageUrl: string | null | undefined): string | null => {
-  if (!imageUrl) return null;
+// Custom error class for validation errors
+export class ValidationError extends Error {
+  public validationErrors: Record<string, string[]>;
+
+  constructor(message: string, validationErrors: Record<string, string[]>) {
+    super(message);
+    this.name = 'ValidationError';
+    this.validationErrors = validationErrors;
+  }
+}
+
+// Helper function to fix malformed image URLs - Fixed return type
+const fixImageUrl = (imageUrl: string | null | undefined): string | undefined => {
+  if (!imageUrl) return undefined; // Return undefined instead of null
 
   // Check if URL starts with /storage/https:// (malformed)
   if (imageUrl.startsWith('/storage/https://') || imageUrl.startsWith('/storage/http://')) {
@@ -80,22 +92,21 @@ const fixImageUrl = (imageUrl: string | null | undefined): string | null => {
 
   // Check if it's a proper local storage URL (starts with /storage/)
   if (imageUrl.startsWith('/storage/')) {
-    // Prepend your API base URL for proper absolute URL
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const baseUrl = import.meta.env.VITE_API_URL;
     return `${baseUrl}${imageUrl}`;
   }
 
   return imageUrl; // Fallback - return as-is
 };
 
-// Helper function to process product data [7]
+// Helper function to process product data
 const processProductData = (product: Product): Product => {
   return {
     ...product,
     // Fix the malformed image_url
     image_url: fixImageUrl(product.image_url),
     // Convert price to number if it's a string
-    price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
+    price: typeof product.price === 'string' ? parseFloat(product.price as string) : product.price,
   };
 };
 
@@ -105,14 +116,20 @@ export const productsService = {
   getAll: async (): Promise<Product[]> => {
     try {
       const response = await api.get<ProductsResponse>('/products');
-
-      // Process each product to fix image URLs [16]
+      // Process each product to fix image URLs
       const processedProducts = response.data.data.map(processProductData);
-
       return processedProducts;
     } catch (error) {
       console.error('Error fetching products:', error);
-      throw error;
+
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 403) {
+          throw new Error("You do not have permission to view products");
+        }
+        throw new Error(error.response?.data?.message || "Failed to fetch products");
+      }
+
+      throw new Error("Failed to fetch products");
     }
   },
 
@@ -120,21 +137,21 @@ export const productsService = {
   getById: async (id: number): Promise<Product> => {
     try {
       const response = await api.get<Product>(`/products/${id}`);
-
-      // Process the single product data
       return processProductData(response.data);
     } catch (error) {
       console.error('Error fetching product:', error);
 
-      // Enhanced error handling
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as any;
-        if (axiosError.response?.status === 404) {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 404) {
           throw new Error('Product not found');
         }
+        if (error.response?.status === 403) {
+          throw new Error('You do not have permission to view this product');
+        }
+        throw new Error(error.response?.data?.message || `Failed to fetch product with ID ${id}`);
       }
 
-      throw error;
+      throw new Error(`Failed to fetch product with ID ${id}`);
     }
   },
 
@@ -162,27 +179,21 @@ export const productsService = {
         },
       });
 
-      // Process the created product data
       return processProductData(response.data.product);
     } catch (error) {
       console.error('Error creating product:', error);
 
-      // Enhanced error handling for validation errors
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as any;
-        if (axiosError.response?.status === 422) {
-          // Laravel validation error
-          const validationError = new Error('Validation failed');
-          (validationError as any).validationErrors = axiosError.response.data.errors;
-          throw validationError;
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 422) {
+          throw new ValidationError("Validation failed", error.response.data.errors || {});
         }
-        if (axiosError.response?.status === 403) {
-          // Authorization error (not admin)
+        if (error.response?.status === 403) {
           throw new Error('You do not have permission to create products');
         }
+        throw new Error(error.response?.data?.message || "Failed to create product");
       }
 
-      throw error;
+      throw new Error("Failed to create product");
     }
   },
 
@@ -195,7 +206,7 @@ export const productsService = {
       formData.append('price', productData.price.toString());
       formData.append('in_stock', productData.in_stock.toString());
       formData.append('category_id', productData.category_id.toString());
-      formData.append('_method', 'PUT'); // Laravel method spoofing
+      formData.append('_method', 'PUT');
 
       if (productData.description) {
         formData.append('description', productData.description);
@@ -211,31 +222,24 @@ export const productsService = {
         },
       });
 
-      // Process the updated product data
       return processProductData(response.data.product);
     } catch (error) {
       console.error('Error updating product:', error);
 
-      // Enhanced error handling
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as any;
-        if (axiosError.response?.status === 422) {
-          // Laravel validation error
-          const validationError = new Error('Validation failed');
-          (validationError as any).validationErrors = axiosError.response.data.errors;
-          throw validationError;
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 422) {
+          throw new ValidationError("Validation failed", error.response.data.errors || {});
         }
-        if (axiosError.response?.status === 403) {
-          // Authorization error (not admin)
+        if (error.response?.status === 403) {
           throw new Error('You do not have permission to update products');
         }
-        if (axiosError.response?.status === 404) {
-          // Product not found
+        if (error.response?.status === 404) {
           throw new Error('Product not found');
         }
+        throw new Error(error.response?.data?.message || `Failed to update product with ID ${id}`);
       }
 
-      throw error;
+      throw new Error(`Failed to update product with ID ${id}`);
     }
   },
 
@@ -246,20 +250,17 @@ export const productsService = {
     } catch (error) {
       console.error('Error deleting product:', error);
 
-      // Enhanced error handling
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as any;
-        if (axiosError.response?.status === 403) {
-          // Authorization error (not admin)
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 403) {
           throw new Error('You do not have permission to delete products');
         }
-        if (axiosError.response?.status === 404) {
-          // Product not found
+        if (error.response?.status === 404) {
           throw new Error('Product not found');
         }
+        throw new Error(error.response?.data?.message || `Failed to delete product with ID ${id}`);
       }
 
-      throw error;
+      throw new Error(`Failed to delete product with ID ${id}`);
     }
   },
 
@@ -270,19 +271,51 @@ export const productsService = {
       return allProducts.filter(product => product.category_id === categoryId);
     } catch (error) {
       console.error('Error filtering products by category:', error);
-      throw error;
+      throw error; // Re-throw the error from getAll()
     }
   },
 
   searchByName: async (searchTerm: string): Promise<Product[]> => {
     try {
       const allProducts = await productsService.getAll();
+      const term = searchTerm.toLowerCase().trim();
+
+      if (!term) return allProducts;
+
       return allProducts.filter(product =>
-        product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+        product.product_name.toLowerCase().includes(term) ||
+        product.description?.toLowerCase().includes(term)
       );
     } catch (error) {
       console.error('Error searching products:', error);
+      throw error; // Re-throw the error from getAll()
+    }
+  },
+
+  // Get products with low stock (helper method)
+  getLowStockProducts: async (threshold: number = 5): Promise<Product[]> => {
+    try {
+      const allProducts = await productsService.getAll();
+      return allProducts.filter(product => product.in_stock <= threshold);
+    } catch (error) {
+      console.error('Error getting low stock products:', error);
       throw error;
+    }
+  },
+
+  // Check if product name is unique (helper method)
+  isUniqueName: async (productName: string, excludeId?: number): Promise<boolean> => {
+    try {
+      const allProducts = await productsService.getAll();
+      const normalizedName = productName.toLowerCase().trim();
+
+      return !allProducts.some(product =>
+        product.product_name.toLowerCase().trim() === normalizedName &&
+        product.id !== excludeId
+      );
+    } catch (error) {
+      console.error('Error checking product name uniqueness:', error);
+      return true;
     }
   },
 };

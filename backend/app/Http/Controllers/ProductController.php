@@ -62,6 +62,8 @@ class ProductController extends Controller
 
         $product = Product::create($data);
 
+        $product->load('category');
+
         // Add the full URL to the response - Fixed logic
         if ($product->image_path) {
             if (filter_var($product->image_path, FILTER_VALIDATE_URL)) {
@@ -137,6 +139,7 @@ class ProductController extends Controller
 
         $product->update($data);
 
+        $product->load('category');
         // Add the full URL to the response - Fixed logic
         if ($product->image_path) {
             if (filter_var($product->image_path, FILTER_VALIDATE_URL)) {

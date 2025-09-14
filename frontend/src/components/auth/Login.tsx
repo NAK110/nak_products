@@ -1,3 +1,4 @@
+// components/auth/Login.tsx - Fixed the array access issue
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "@/lib/api";
 import { AxiosError } from "axios";
 
@@ -41,6 +43,11 @@ export default function LoginForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/products";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -54,24 +61,18 @@ export default function LoginForm({
 
       const loginData = response.data;
 
-      // Store user info in localStorage for UI purposes
-      // Authentication is handled via HTTP-only session cookies
       if (loginData.user) {
         localStorage.setItem("user", JSON.stringify(loginData.user));
       }
 
-      // Redirect to dashboard or home
-      window.location.href = "/";
+      navigate(from, { replace: true });
     } catch (err) {
       console.error("Login error:", err);
-
       if (err instanceof AxiosError) {
         if (err.response) {
-          // Server responded with error status
           const errorData = err.response.data as LoginError;
-
-          // Handle validation errors
           if (err.response.status === 422 && errorData.errors) {
+            // Fixed: Added [0] to access first element of array
             const emailError = errorData.errors.email?.[0];
             const passwordError = errorData.errors.password?.[0];
             setError(emailError || passwordError || "Validation error");
@@ -79,10 +80,8 @@ export default function LoginForm({
             setError(errorData.message || "Login failed");
           }
         } else if (err.request) {
-          // Request was made but no response received
           setError("Network error. Please check your connection.");
         } else {
-          // Something else happened
           setError("An unexpected error occurred.");
         }
       } else {
@@ -110,7 +109,6 @@ export default function LoginForm({
                   {error}
                 </div>
               )}
-
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -123,7 +121,6 @@ export default function LoginForm({
                   disabled={isLoading}
                 />
               </div>
-
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -135,7 +132,6 @@ export default function LoginForm({
                   disabled={isLoading}
                 />
               </div>
-
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Logging in..." : "Login"}
@@ -143,9 +139,13 @@ export default function LoginForm({
               </div>
               <div className="mt-4 text-center text-sm">
                 Don't have an account{" "}
-                <a href="/register" className="underline underline-offset-4">
+                <button
+                  type="button"
+                  onClick={() => navigate("/register")}
+                  className="underline underline-offset-4 hover:text-blue-600"
+                >
                   Register
-                </a>
+                </button>
               </div>
             </div>
           </form>

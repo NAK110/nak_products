@@ -3,6 +3,12 @@ Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{admin_token}}
 
+### get current user
+GET {{api_url}}/user
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{admin_token}}
+
 ###
 POST {{api_url}}/users
 Content-Type: application/json

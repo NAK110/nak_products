@@ -14,13 +14,13 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    //for admin
+    # //for admin
     "email": "admin@gmail.com",
     "password": "password"
 
     //for user
-    # "email": "jackson@gmail.com",
-    # "password": "12345678"
+    # "email": "nak110@gmail.com",
+    # "password": "password"
 }
 
 ###

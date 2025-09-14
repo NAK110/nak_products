@@ -1,3 +1,4 @@
+// lib/api.ts - Fixed to use React Router instead of window.location
 import axios from 'axios';
 
 const api = axios.create({
@@ -7,7 +8,7 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  withXSRFToken: true, 
+  withXSRFToken: true,
 });
 
 export const getCsrfCookie = async () => {
@@ -26,7 +27,6 @@ api.interceptors.request.use(
     const authRequiredPaths = ['/login', '/register'];
     const isAuthRequired = authRequiredPaths.some(path => config.url?.includes(path));
 
-    // Get CSRF cookie for authentication endpoints
     if (isAuthRequired) {
       await getCsrfCookie();
     }
@@ -46,17 +46,16 @@ api.interceptors.response.use(
       const isLoginAttempt = error.config?.url?.includes('login');
 
       if (!isLoginAttempt) {
-        // Clear any stored user data (if you're storing user info)
         localStorage.removeItem('user');
 
-        // Redirect to login
-        window.location.href = '/login';
+        // Instead of window.location.href, let the components handle redirects
+        // The ProtectedRoute component will catch this and redirect to login
+        console.log('Authentication failed - user will be redirected to login');
       }
     }
 
     // Handle CSRF token mismatch (419 status)
     if (error.response?.status === 419) {
-      // Refresh CSRF token and retry the request
       await getCsrfCookie();
       return api.request(error.config);
     }

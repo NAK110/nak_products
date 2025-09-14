@@ -1,3 +1,4 @@
+// components/auth/Register.tsx - Fixed the array assignment issue
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,14 +11,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { AxiosError } from "axios";
 
 interface RegisterResponse {
   success: boolean;
   message: string;
-  access_token: string;
-  token_type: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 interface RegisterError {
@@ -42,13 +48,14 @@ export default function RegisterForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setFieldErrors({});
 
-    // Client-side password confirmation validation
     if (password !== passwordConfirmation) {
       setFieldErrors({ password_confirmation: "Passwords do not match" });
       setIsLoading(false);
@@ -65,38 +72,30 @@ export default function RegisterForm({
 
       const registerData = response.data;
 
-      // Store tokens (same as login)
-      localStorage.setItem("auth_token", registerData.access_token);
-      localStorage.setItem("token_type", registerData.token_type);
+      if (registerData.user) {
+        localStorage.setItem("user", JSON.stringify(registerData.user));
+      }
 
-      // Redirect to home page
-      window.location.href = "/";
+      navigate("/products", { replace: true });
     } catch (err) {
       console.error("Registration error:", err);
-
       if (err instanceof AxiosError) {
         if (err.response) {
-          // Server responded with error status
           const errorData = err.response.data as RegisterError;
-
-          // Handle validation errors
           if (errorData.errors) {
             const newFieldErrors: { [key: string]: string } = {};
             Object.entries(errorData.errors).forEach(([field, messages]) => {
               if (messages && messages.length > 0) {
-                newFieldErrors[field] = messages[0]; // Show first error for each field
+                // Fixed: Access first element [0] to get string instead of array
+                newFieldErrors[field] = messages[0];
               }
             });
             setFieldErrors(newFieldErrors);
           }
-
-          // Set general error message
           setError(errorData.message || "Registration failed");
         } else if (err.request) {
-          // Request was made but no response received
           setError("Network error. Please check your connection.");
         } else {
-          // Something else happened
           setError("An unexpected error occurred.");
         }
       } else {
@@ -124,7 +123,6 @@ export default function RegisterForm({
                   {error}
                 </div>
               )}
-
               <div className="grid gap-3">
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -140,7 +138,6 @@ export default function RegisterForm({
                   <p className="text-sm text-red-600">{fieldErrors.name}</p>
                 )}
               </div>
-
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -156,7 +153,6 @@ export default function RegisterForm({
                   <p className="text-sm text-red-600">{fieldErrors.email}</p>
                 )}
               </div>
-
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -172,7 +168,6 @@ export default function RegisterForm({
                   <p className="text-sm text-red-600">{fieldErrors.password}</p>
                 )}
               </div>
-
               <div className="grid gap-3">
                 <Label htmlFor="password_confirmation">Confirm Password</Label>
                 <Input
@@ -190,19 +185,21 @@ export default function RegisterForm({
                   </p>
                 )}
               </div>
-
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create account"}
                 </Button>
               </div>
             </div>
-
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <a href="/login" className="underline underline-offset-4">
+              <button
+                type="button"
+                onClick={() => navigate("/login")}
+                className="underline underline-offset-4 hover:text-blue-600"
+              >
                 Login
-              </a>
+              </button>
             </div>
           </form>
         </CardContent>
