@@ -5,7 +5,7 @@ Mini E-commerce Web App
 
 # Description
 
-A full-stack web application with authentication, role-based authentication, and CRUD operations for Users, Categories, and Products. 
+A full-stack web application with role-based authentication, and CRUD operations for Users, Categories, and Products. 
 
 The application features secure session-based authentication using Laravel Sanctum, role-based permissions, and user interfaces for both users and admin. 
 
