@@ -12,7 +12,6 @@ export const useProductCrud = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Create product
     const createProduct = useCallback(async (productData: CreateProductRequest): Promise<Product | null> => {
         try {
             const createdProduct = await productsService.create(productData);

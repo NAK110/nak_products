@@ -18,7 +18,7 @@ import { ProductsGrid } from "@/components/ProductsGrid";
 import { ProductDetailModal } from "@/components/ProductDetailModal";
 import { useProductCrud } from "@/hooks/useProductCrud";
 import categoriesService, { type Category } from "@/services/categoriesService";
-import usersService, { type User } from "@/services/usersService"; // Import User type
+import usersService, { type User } from "@/services/usersService";
 import type {
   CreateProductRequest,
   UpdateProductRequest,

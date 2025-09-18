@@ -1,4 +1,3 @@
-// services/categoriesService.ts - Fixed with proper TypeScript types
 import api from "@/lib/api";
 import { AxiosError } from "axios";
 
@@ -17,7 +16,6 @@ export interface UpdateCategoryRequest {
     category_name: string;
 }
 
-// Response interfaces matching your Laravel controller
 export interface CategoriesResponse {
     success: boolean;
     data: Category[];
@@ -40,7 +38,6 @@ export interface DeleteCategoryResponse {
     message: string;
 }
 
-// Error interface for better error handling
 export interface CategoryError {
     message: string;
     errors?: {
@@ -48,7 +45,6 @@ export interface CategoryError {
     };
 }
 
-// Custom error class for validation errors
 export class ValidationError extends Error {
     public validationErrors: Record<string, string[]>;
 
@@ -61,7 +57,6 @@ export class ValidationError extends Error {
 
 // Categories API service
 export const categoriesService = {
-    // GET /categories - Returns { success: true, data: Category[] }
     getAll: async (): Promise<Category[]> => {
         try {
             const response = await api.get<CategoriesResponse>('/categories');

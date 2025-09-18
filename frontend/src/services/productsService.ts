@@ -75,9 +75,8 @@ export class ValidationError extends Error {
   }
 }
 
-// Helper function to fix malformed image URLs - Fixed return type
 const fixImageUrl = (imageUrl: string | null | undefined): string | undefined => {
-  if (!imageUrl) return undefined; // Return undefined instead of null
+  if (!imageUrl) return undefined;
 
   // Check if URL starts with /storage/https:// (malformed)
   if (imageUrl.startsWith('/storage/https://') || imageUrl.startsWith('/storage/http://')) {

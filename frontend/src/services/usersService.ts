@@ -25,6 +25,14 @@ export interface UpdateUserRequest {
   password?: string;
 }
 
+// Add this interface for the dynamic request data
+interface UpdateUserRequestData {
+  name: string;
+  email: string;
+  role: "admin" | "user";
+  password?: string;
+}
+
 export interface UsersResponse {
   success: boolean;
   users: User[];
@@ -159,8 +167,8 @@ export const usersService = {
 
   update: async (id: number, userData: UpdateUserRequest): Promise<User> => {
     try {
-      // Create the request data without undefined password
-      const requestData: Record<string, any> = {
+      // Use proper typing instead of Record<string, any>
+      const requestData: UpdateUserRequestData = {
         name: userData.name.trim(),
         email: userData.email.trim().toLowerCase(),
         role: userData.role,

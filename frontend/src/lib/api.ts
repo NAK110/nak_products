@@ -1,4 +1,3 @@
-// lib/api.ts - Fixed to use React Router instead of window.location
 import axios from 'axios';
 
 const api = axios.create({
@@ -47,14 +46,9 @@ api.interceptors.response.use(
 
       if (!isLoginAttempt) {
         localStorage.removeItem('user');
-
-        // Instead of window.location.href, let the components handle redirects
-        // The ProtectedRoute component will catch this and redirect to login
         console.log('Authentication failed - user will be redirected to login');
       }
     }
-
-    // Handle CSRF token mismatch (419 status)
     if (error.response?.status === 419) {
       await getCsrfCookie();
       return api.request(error.config);
