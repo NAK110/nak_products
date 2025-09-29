@@ -57,35 +57,40 @@ const Sidebar = () => {
     loadCurrentUser();
   }, []);
 
-  // Load counts from services
   useEffect(() => {
     const loadCounts = async () => {
+      if (!currentUser) return; // Wait until we know the role
       setLoading(true);
+
       try {
-        // Load all data in parallel for better performance
-        const [products, categories, users] = await Promise.allSettled([
+        // Always load products & categories
+        const requests = [
           productsService.getAll(),
           categoriesService.getAll(),
-          usersService.getAll(),
-        ]);
+        ] as const;
 
-        // Set products count
+        // ✅ Only push the users request if admin
+        const adminRequests =
+          currentUser.role === "admin"
+            ? [...requests, usersService.getAll() as Promise<any>]
+            : requests;
+
+        const results = await Promise.allSettled(adminRequests);
+
+        const [products, categories, users] = results;
+
         if (products.status === "fulfilled") {
           setProductsCount(products.value.length);
         }
-
-        // Set categories count
         if (categories.status === "fulfilled") {
           setCategoriesCount(categories.value.length);
         }
-
-        // Set users count
-        if (users.status === "fulfilled") {
+        // Only admins will have a third result
+        if (currentUser.role === "admin" && users?.status === "fulfilled") {
           setUsersCount(users.value.length);
         }
       } catch (error) {
         console.error("Error loading sidebar counts:", error);
-        // Set defaults on error
         setProductsCount(0);
         setCategoriesCount(0);
         setUsersCount(0);
@@ -94,8 +99,11 @@ const Sidebar = () => {
       }
     };
 
-    loadCounts();
-  }, []); // Only run once on mount
+    if (!userLoading) {
+      // wait until we finish loading currentUser
+      loadCounts();
+    }
+  }, [currentUser, userLoading]);
 
   const handleLogout = () => {
     navigate("/login", { replace: true });

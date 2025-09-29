@@ -20,7 +20,6 @@ export const getCsrfCookie = async () => {
   }
 };
 
-// Request interceptor
 api.interceptors.request.use(
   async (config) => {
     const authRequiredPaths = ['/login', '/register'];
@@ -37,7 +36,6 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
