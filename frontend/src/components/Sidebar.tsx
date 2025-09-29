@@ -7,6 +7,7 @@ import {
   Users,
   User2,
   LogOut,
+  Sparkle,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import productsService from "@/services/productsService";
 import categoriesService from "@/services/categoriesService";
-import usersService, { type User } from "@/services/usersService"; // Import User type from existing service
+import usersService, { type User } from "@/services/usersService";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -183,11 +184,11 @@ const Sidebar = () => {
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Package className="w-4 h-4 text-white" />
+              <Sparkle className="w-4 h-4 text-white" />
             </div>
             <div>
               <span className="font-semibold text-gray-900">
-                {currentUser?.role === "admin" ? "Admin Panel" : "Store"}
+                {currentUser?.role === "admin" ? "Admin Panel" : "Luxora"}
               </span>
               <div className="text-xs text-gray-500">
                 {currentUser?.role === "admin" ? "Management" : "Shopping"}

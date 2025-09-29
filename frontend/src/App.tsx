@@ -10,8 +10,10 @@ import Layout from "@/layouts/Layout";
 import ProductsPage from "@/pages/Products";
 import Categories from "@/pages/Category";
 import UsersPage from "@/pages/User";
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
+// import LoginPage from "./pages/auth/LoginPage";
+import LoginPage from "./pages/auth/NewLogin";
+// import RegisterPage from "./pages/auth/RegisterPage";
+import RegisterPage from "./pages/auth/NewRegisterPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const App: React.FC = () => {
@@ -21,8 +23,6 @@ const App: React.FC = () => {
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-
-        {/* Protected routes */}
         <Route
           path="/"
           element={
@@ -32,8 +32,6 @@ const App: React.FC = () => {
           }
         >
           <Route index element={<Navigate to="/products" replace />} />
-
-          {/* Products - accessible to both admin and user */}
           <Route path="products" element={<ProductsPage />} />
 
           {/* Categories - admin only */}

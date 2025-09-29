@@ -13,7 +13,6 @@ export interface Product {
   category_id: number;
   created_at?: string;
   updated_at?: string;
-  // Relation from controller's with('category')
   category?: {
     id: number;
     category_name: string;
@@ -75,27 +74,18 @@ export class ValidationError extends Error {
   }
 }
 
-const fixImageUrl = (imageUrl: string | null | undefined): string | undefined => {
+const fixImageUrl = (imageUrl?: string | null): string | undefined => {
   if (!imageUrl) return undefined;
 
-  // Check if URL starts with /storage/https:// (malformed)
-  if (imageUrl.startsWith('/storage/https://') || imageUrl.startsWith('/storage/http://')) {
-    // Extract the actual URL by removing the /storage/ prefix
+  if (imageUrl.includes('/storage/http')) {
     return imageUrl.replace('/storage/', '');
   }
 
-  // Check if it's a proper external URL (starts with http/https)
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl; // Return as-is
-  }
-
-  // Check if it's a proper local storage URL (starts with /storage/)
   if (imageUrl.startsWith('/storage/')) {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    return `${baseUrl}${imageUrl}`;
+    return `${import.meta.env.VITE_API_URL}${imageUrl}`;
   }
 
-  return imageUrl; // Fallback - return as-is
+  return imageUrl;
 };
 
 // Helper function to process product data
@@ -119,8 +109,6 @@ export const productsService = {
       const processedProducts = response.data.data.map(processProductData);
       return processedProducts;
     } catch (error) {
-      console.error('Error fetching products:', error);
-
       if (error instanceof AxiosError) {
         if (error.response?.status === 403) {
           throw new Error("You do not have permission to view products");

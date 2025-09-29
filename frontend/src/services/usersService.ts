@@ -86,7 +86,6 @@ const processUserData = (user: User): User => {
 
 // Users API service
 export const usersService = {
-  // GET /users - Returns { success: true, users: User[] }
   getAll: async (): Promise<User[]> => {
     try {
       const response = await api.get<UsersResponse>("/users");
