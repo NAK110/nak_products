@@ -1,41 +1,17 @@
-// layouts/Layout.tsx - Same structure, different content for users
-import React, { useState, useEffect } from "react";
+// layouts/Layout.tsx
+import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
-import usersService, { type User } from "@/services/usersService";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Layout: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await usersService.getCurrentUser();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error("Error loading user:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadUser();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const { user: currentUser } = useAuth();
 
   const isAdmin = currentUser?.role === "admin";
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
-
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header - Different content for admin vs user */}
@@ -52,7 +28,6 @@ const Layout: React.FC = () => {
                   : "Browse and discover amazing products"}
               </p>
             </div>
-
             {/* User info and actions */}
             <div className="flex items-center space-x-4">
               {/* Welcome message */}
@@ -64,7 +39,6 @@ const Layout: React.FC = () => {
                   {isAdmin ? "Administrator" : "Customer"}
                 </div>
               </div>
-
               {/* Profile button */}
               <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors group">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
@@ -74,7 +48,6 @@ const Layout: React.FC = () => {
             </div>
           </div>
         </header>
-
         {/* Main Content - Different styling for admin vs user */}
         <main className={`flex-1 overflow-auto ${isAdmin ? "p-6" : "p-4"}`}>
           {/* Different container styling */}

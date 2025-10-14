@@ -1,4 +1,4 @@
-// pages/ProductsPage.tsx - Fixed with proper typing
+// pages/ProductsPage.tsx - Fixed to use AuthContext
 import React, { useState, useEffect } from "react";
 import { Package, Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,8 @@ import { ProductsTable } from "@/components/admin/Product/ProductsTable";
 import { ProductsGrid } from "@/components/ProductsGrid";
 import { ProductDetailModal } from "@/components/ProductDetailModal";
 import { useProductCrud } from "@/hooks/useProductCrud";
+import { useAuth } from "@/contexts/AuthContext";
 import categoriesService, { type Category } from "@/services/categoriesService";
-import usersService, { type User } from "@/services/usersService";
 import type {
   CreateProductRequest,
   UpdateProductRequest,
@@ -37,9 +37,9 @@ const ProductsPage: React.FC = () => {
     clearError,
   } = useProductCrud();
 
+  // ✅ Use AuthContext instead of local state
+  const { user: currentUser } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
-  // Fix: Properly type currentUser as User | null
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [files, setFiles] = useState<File[] | undefined>();
@@ -77,23 +77,12 @@ const ProductsPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const isAdmin = currentUser?.role === "admin";
-
-  // Load initial data
+  
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [userData, categoriesData] = await Promise.allSettled([
-          usersService.getCurrentUser(),
-          categoriesService.getAll(),
-        ]);
-
-        if (userData.status === "fulfilled") {
-          setCurrentUser(userData.value);
-        }
-        if (categoriesData.status === "fulfilled") {
-          setCategories(categoriesData.value);
-        }
-
+        const categoriesData = await categoriesService.getAll();
+        setCategories(categoriesData);
         await loadProducts();
       } catch (error) {
         console.error("Error loading data:", error);

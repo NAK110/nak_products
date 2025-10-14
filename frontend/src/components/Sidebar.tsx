@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import productsService from "@/services/productsService";
 import categoriesService from "@/services/categoriesService";
-import usersService, { type User } from "@/services/usersService";
+import usersService from "@/services/usersService";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -31,45 +32,27 @@ const Sidebar = () => {
   const [categoriesCount, setCategoriesCount] = useState<number>(0);
   const [usersCount, setUsersCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const isLoadingRef = useRef(false);
 
-  // Add state for current user
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userLoading, setUserLoading] = useState(true);
+  // Use the auth context instead of fetching again
+  const { user: currentUser, loading: userLoading } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Load current user data
-  useEffect(() => {
-    const loadCurrentUser = async () => {
-      setUserLoading(true);
-      try {
-        const user = await usersService.getCurrentUser();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error("Error loading current user:", error);
-        setCurrentUser(null);
-      } finally {
-        setUserLoading(false);
-      }
-    };
-
-    loadCurrentUser();
-  }, []);
-
   useEffect(() => {
     const loadCounts = async () => {
-      if (!currentUser) return; // Wait until we know the role
+      if (!currentUser) return;
+
+      isLoadingRef.current = true;
       setLoading(true);
 
       try {
-        // Always load products & categories
         const requests = [
           productsService.getAll(),
           categoriesService.getAll(),
         ] as const;
 
-        // ✅ Only push the users request if admin
         const adminRequests =
           currentUser.role === "admin"
             ? [...requests, usersService.getAll() as Promise<any>]
@@ -85,7 +68,6 @@ const Sidebar = () => {
         if (categories.status === "fulfilled") {
           setCategoriesCount(categories.value.length);
         }
-        // Only admins will have a third result
         if (currentUser.role === "admin" && users?.status === "fulfilled") {
           setUsersCount(users.value.length);
         }
@@ -96,16 +78,17 @@ const Sidebar = () => {
         setUsersCount(0);
       } finally {
         setLoading(false);
+        isLoadingRef.current = false;
       }
     };
 
-    if (!userLoading) {
-      // wait until we finish loading currentUser
+    if (!userLoading && currentUser) {
       loadCounts();
     }
-  }, [currentUser, userLoading]);
+  }, [currentUser?.role, userLoading]); 
 
   const handleLogout = () => {
+    localStorage.removeItem("user");
     navigate("/login", { replace: true });
   };
 
