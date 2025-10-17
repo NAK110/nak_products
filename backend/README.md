@@ -1,3 +1,156 @@
+# Luxora Backend API
+
+Laravel backend API for the Luxora e-commerce application with role-based authentication and product management.
+
+## 🚀 Features
+
+### Authentication & Authorization
+- Laravel Sanctum for SPA authentication
+- Role-based access control (Admin/User)
+- CSRF protection
+- Session-based authentication
+
+### API Endpoints
+- **Products CRUD** - Complete product management
+- **Categories CRUD** - Product categorization
+- **User Management** - User account management
+- **File Upload** - Product image handling
+- **Authentication** - Login/logout/register
+
+### Database
+- MySQL database with migrations
+- Database seeders for initial data
+- Eloquent ORM relationships
+- Foreign key constraints
+
+## 🛠️ Tech Stack
+
+- **Framework**: Laravel 12
+- **PHP Version**: 8.4.1
+- **Database**: MySQL
+- **Authentication**: Laravel Sanctum
+- **File Storage**: Laravel Storage
+
+## 📁 Key Files & Directories
+
+```
+backend/
+├── app/
+│   ├── Http/Controllers/    # API controllers
+│   ├── Models/             # Eloquent models
+│   └── Middleware/         # Custom middleware
+├── config/
+│   └── sanctum.php         # Sanctum configuration
+├── database/
+│   ├── migrations/         # Database migrations
+│   └── seeders/           # Database seeders
+├── routes/
+│   ├── api.php            # API routes
+│   └── web.php            # Web routes
+├── storage/
+│   └── app/public/        # File storage
+└── Makefile               # Development shortcuts
+```
+
+## 🔧 Development Commands
+
+### Using Makefile (Recommended)
+```bash
+make migrate          # Fresh migration
+make seed            # Fresh migration with seeding
+make start           # Start Laravel server
+make route           # List all routes
+make opt             # Optimize application
+```
+
+### Using Artisan Directly
+```bash
+php artisan migrate:fresh --seed
+php artisan serve
+php artisan route:list
+php artisan optimize
+```
+
+## 🔐 Authentication Configuration
+
+### Sanctum Configuration
+The application is configured for SPA authentication with these domains:
+```php
+'stateful' => ['localhost', 'localhost:5173', '127.0.0.1', '127.0.0.1:8000', '::1']
+```
+
+### Environment Variables
+```bash
+SANCTUM_STATEFUL_DOMAINS=localhost:5173
+SESSION_DOMAIN=localhost
+```
+
+## 🗄️ Database Schema
+
+### Users Table
+- id, name, email, role, timestamps
+- Roles: 'admin', 'user'
+
+### Categories Table
+- id, name, description, timestamps
+
+### Products Table
+- id, name, description, price, image, category_id, timestamps
+- Foreign key to categories
+
+## 📝 API Documentation
+
+### Authentication Routes
+```
+POST /api/login          # User login
+POST /api/logout         # User logout  
+POST /api/register       # User registration
+```
+
+### Protected Routes (Requires Authentication)
+```
+GET    /api/products           # List products
+POST   /api/products           # Create product (Admin only)
+PUT    /api/products/{id}      # Update product (Admin only)
+DELETE /api/products/{id}      # Delete product (Admin only)
+
+GET    /api/categories         # List categories
+POST   /api/categories         # Create category (Admin only)
+PUT    /api/categories/{id}    # Update category (Admin only)
+DELETE /api/categories/{id}    # Delete category (Admin only)
+
+GET    /api/users              # List users (Admin only)
+POST   /api/users              # Create user (Admin only)
+PUT    /api/users/{id}         # Update user (Admin only)
+DELETE /api/users/{id}         # Delete user (Admin only)
+```
+
+## 🔒 Security Features
+
+- CSRF token validation
+- SQL injection prevention via Eloquent ORM
+- XSS protection
+- File upload validation
+- Request validation
+- Rate limiting
+
+## 🚀 Deployment
+
+### Production Setup
+1. Set `APP_ENV=production` in `.env`
+2. Set `APP_DEBUG=false`
+3. Configure production database
+4. Run `php artisan config:cache`
+5. Run `php artisan route:cache`
+6. Run `php artisan view:cache`
+
+### File Permissions
+```bash
+chmod -R 755 storage bootstrap/cache
+```
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
